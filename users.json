@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Customer 1",
+    "email": "customer@practicesoftwaretesting.com",
+    "password": "welcome01"
+  },
+  {
+    "name": "Customer 2",
+    "email": "customer2@practicesoftwaretesting.com",
+    "password": "welcome02"
+  }
+]
