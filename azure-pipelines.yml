@@ -1,0 +1,30 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '18.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    npm ci
+  displayName: 'Install Dependencies'
+
+- script: |
+    npx playwright install --with-deps
+  displayName: 'Install Playwright Browsers'
+
+- script: |
+    npx playwright test
+  displayName: 'Run Playwright Tests'
+
+- task: PublishTestResults@2
+  displayName: 'Publish Playwright Test Results'
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/results.xml' # تأكدي بلي Playwright ديالك كيخرج JUnit report ف هاد المسار يلا بغيتي تشوفيهم ف Azure
+  condition: Always()
