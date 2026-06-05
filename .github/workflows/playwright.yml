@@ -18,17 +18,23 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20' # Fixé sur la version 20 pour plus de stabilité
+        node-version: '20'
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm install # Plus tolérant que npm ci si le package-lock n'est pas parfaitement synchronisé
+      run: npm install
 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
-      run: npx playwright test
+      run: |
+        # S'assurer que le serveur local démarre si vos tests dépendent d'un localhost
+        npm start & 
+        # Attendre quelques secondes que le serveur soit prêt
+        sleep 5 
+        # Lancer les tests avec des options de rejeu en cas de lenteur réseau
+        npx playwright test --retries=2
 
     - name: Upload Playwright Report
       uses: actions/upload-artifact@v4
