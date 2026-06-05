@@ -21,8 +21,13 @@ test.describe('Homepage & Cart Tests Suite', () => {
     
     await page.getByTestId("login-submit").click();
 
+    // =============== MODIFICATION ICI ===============
+    // On attend que l'URL change vers l'espace connecté ou que le réseau soit calme
+    await page.waitForURL('**/account**', { waitUntil: 'networkidle', timeout: 15000 });
+    // =================================================
+
     // Attendre que la connexion soit validée par le menu utilisateur
-    await expect(page.getByTestId("nav-menu")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId("nav-menu")).toBeVisible({ timeout: 15000 });
     
     // Capture d'écran confirmant que l'utilisateur est connecté
     await page.screenshot({ path: 'screenshots/2-connexion-reussie.png' });
