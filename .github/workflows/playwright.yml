@@ -28,13 +28,9 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
-      run: |
-        # S'assurer que le serveur local démarre si vos tests dépendent d'un localhost
-        npm start & 
-        # Attendre quelques secondes que le serveur soit prêt
-        sleep 5 
-        # Lancer les tests avec des options de rejeu en cas de lenteur réseau
-        npx playwright test --retries=2
+      run: npx playwright test
+      env:
+        CI: true
 
     - name: Upload Playwright Report
       uses: actions/upload-artifact@v4
