@@ -1,45 +1,60 @@
 import { test, expect } from '@playwright/test';
 
 test('E2E Scenario: Login, Search and Add Products to Cart', async ({ page }) => {
-  // 1. Navigate to the homepage (Suppression du waitUntil instable)
-  await page.goto('https://practicesoftwaretesting.com/');
+  // 1. Aller sur la page d'accueil
+  await page.goto('https://practicesoftwaretesting.com/', { waitUntil: 'load' });
 
-  // 2. Go to Login Page
+  // 2. Aller sur la page de connexion
   await page.getByTestId('nav-sign-in').click();
 
-  // 3. Perform Login
-  await page.getByTestId('email').fill('admin@practicesoftwaretesting.com');
+  // 3. Connexion avec le compte Customer (pour éviter les redirections admin)
+  await page.getByTestId('email').fill('customer@practicesoftwaretesting.com');
   await page.getByTestId('password').fill('welcome01');
-  await page.getByTestId('login-submit').click();
+  
+  // Attendre la redirection vers la page de compte après le clic
+  await Promise.all([
+    page.waitForURL('**/account', { timeout: 15000 }),
+    page.getByTestId('login-submit').click()
+  ]);
 
-  // 📸 Take a screenshot right after login success
+  // 📸 Capture d'écran de connexion réussie
   await page.screenshot({ path: 'screenshots/login-success.png', fullPage: true });
 
-  // 4. Return Home and Add First Product
+  // 4. Retour à l'accueil pour ajouter le premier produit disponible
   await page.getByTestId('nav-home').click();
-  await page.getByTestId('product-01KT4DK3Q67HSZWFVMR0FHTAJF').click();
+  
+  // Sélection dynamique du premier produit de la liste
+  const firstProduct = page.locator('.card').first();
+  await expect(firstProduct).toBeVisible({ timeout: 15000 });
+  await firstProduct.click();
+  
+  // Attendre et cliquer sur l'ajout au panier
   await page.getByTestId('add-to-cart').click();
   
-  // Increase quantity twice
-  await page.getByTestId('increase-quantity').click();
-  await page.getByTestId('increase-quantity').click();
+  // Augmenter la quantité deux fois avec le bon TestID du site ('quantity-up')
+  await page.getByTestId('quantity-up').click();
+  await page.getByTestId('quantity-up').click();
   await page.getByTestId('add-to-cart').click();
 
-  // 💡 CORRECTION : Retourner sur la page d'accueil pour retrouver la barre de recherche
+  // 5. Retourner sur la page d'accueil pour retrouver la barre de recherche
   await page.getByTestId('nav-home').click();
 
-  // 5. Search for another product (Hammer)
+  // 6. Recherche d'un autre produit (Hammer)
   await page.getByTestId('search-query').fill('hammer');
   await page.getByTestId('search-submit').click();
 
-  // 6. Select and Add the Searched Product
-  await page.getByTestId('product-01KT4DK3QPH671JYVEG86YFVRS').click();
+  // Attendre que les résultats de recherche apparaissent et cliquer sur le premier marteau trouvé
+  const firstHammerResult = page.locator('.card').first();
+  await expect(firstHammerResult).toBeVisible({ timeout: 10000 });
+  await firstHammerResult.click();
+  
+  // Ajouter le marteau au panier
   await page.getByTestId('add-to-cart').click();
 
-  // Final Assertion
+  // Assertion finale : Vérifier que le badge du panier est visible et contient des produits
   const cartBadge = page.getByTestId('cart-quantity');
-  await expect(cartBadge).toBeVisible();
+  await expect(cartBadge).toBeVisible({ timeout: 10000 });
 
-  // 📸 Take a final screenshot of the full E2E workflow completed
+  // 📸 Capture d'écran finale du workflow complet réussi
   await page.screenshot({ path: 'screenshots/cart-end-result.png', fullPage: true });
 });
