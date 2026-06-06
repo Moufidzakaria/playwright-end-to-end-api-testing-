@@ -1,69 +1,86 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Homepage & Cart Tests Suite', () => {
+test('E2E Scenario: Login, Search and Add Products to Cart', async ({ page }) => {
 
-  test.beforeEach(async ({ page }) => {
-    // Il est préférable d'attendre le chargement complet (networkidle ou load) dans la CI de GitHub
-    await page.goto('/', { waitUntil: 'load' });
+  // Aller sur le site
+  await page.goto('https://practicesoftwaretesting.com/', {
+    waitUntil: 'load'
   });
 
-  test('should login, navigate home, and add a product to the cart with screenshots', async ({ page }) => {
-    
-    // -----------------------------------------------------------------
-    // ÉTAPE 1 : Connexion (Login avec un compte client standard)
-    // -----------------------------------------------------------------
-    await page.getByTestId("nav-sign-in").click();
-    
-    await page.getByTestId("email").fill('customer@practicesoftwaretesting.com');
-    await page.getByTestId("password").fill('welcome01');
-    
-    await page.screenshot({ path: 'screenshots/1-formulaire-rempli.png' });
-    
-    // Cliquer et attendre la navigation vers /account
-    await Promise.all([
-      page.waitForURL('**/account', { timeout: 15000 }),
-      page.getByTestId("login-submit").click()
-    ]);
+  // Page Login
+  await page.getByTestId('nav-sign-in').click();
 
-    // OPTIONNEL : Si "nav-menu" n'existe pas pour le rôle customer, remplacez-le par un élément sûr :
-    // Exemple : un sélecteur présent sur la page account (ex: page.getByTestId('change-password-submit') ou similaire)
-    // Si 'nav-menu' est bien présent mais instable, on force l'attente de son état attaché :
-    const navMenu = page.getByTestId("nav-menu");
-    await expect(navMenu).toBeAttached({ timeout: 15000 });
-    
-    await page.screenshot({ path: 'screenshots/2-connexion-reussie.png' });
+  // Connexion
+  await page.getByTestId('email').fill(
+    'customer@practicesoftwaretesting.com'
+  );
 
-    // -----------------------------------------------------------------
-    // ÉTAPE 2 : Retour à la page d'accueil
-    // -----------------------------------------------------------------
-    // Utiliser une URL relative pour éviter les problèmes d'environnement en CI
-    await page.goto('/', { waitUntil: 'load' });
-    
-    const productCards = page.locator('.card');
-    await expect(productCards.first()).toBeVisible({ timeout: 15000 });
-    
-    await page.screenshot({ path: 'screenshots/3-retour-accueil-produits.png' });
+  await page.getByTestId('password').fill(
+    'welcome01'
+  );
 
-    // -----------------------------------------------------------------
-    // ÉTAPE 3 : Sélection du produit
-    // -----------------------------------------------------------------
-    const firstProduct = productCards.first();
-    await firstProduct.click();
+  await Promise.all([
+    page.waitForURL('**/account'),
+    page.getByTestId('login-submit').click()
+  ]);
 
-    const addToCartBtn = page.getByTestId("add-to-cart");
-    await expect(addToCartBtn).toBeVisible({ timeout: 10000 });
-    
-    await page.screenshot({ path: 'screenshots/4-page-details-produit.png' });
+  // Vérifier que la connexion est réussie
+  await expect(page).toHaveURL(/.*account/);
 
-    // -----------------------------------------------------------------
-    // ÉTAPE 4 : Ajout au panier et Vérification
-    // -----------------------------------------------------------------
-    await addToCartBtn.click();
-
-    const cartBadge = page.getByTestId("cart-quantity");
-    await expect(cartBadge).toHaveText("1", { timeout: 10000 });
-
-    await page.screenshot({ path: 'screenshots/5-produit-ajoute-au-panier.png' });
+  await page.screenshot({
+    path: 'login-success.png',
+    fullPage: true
   });
 
+  // Retour accueil
+  await page.goto('https://practicesoftwaretesting.com/', {
+    waitUntil: 'load'
+  });
+
+  // Premier produit
+  const firstProduct = page.locator('.card').first();
+
+  await expect(firstProduct).toBeVisible();
+
+  await firstProduct.click();
+
+  // Ajouter au panier
+  await page.getByTestId('add-to-cart').click();
+
+  // Augmenter quantité
+  await page.getByTestId('quantity-up').click();
+  await page.getByTestId('quantity-up').click();
+
+  await page.getByTestId('add-to-cart').click();
+
+  // Retour accueil
+  await page.goto('https://practicesoftwaretesting.com/', {
+    waitUntil: 'load'
+  });
+
+  // Recherche Hammer
+  await page.getByTestId('search-query').fill('hammer');
+
+  await page.getByTestId('search-submit').click();
+
+  await page.waitForLoadState('networkidle');
+
+  const hammerProduct = page.locator('.card').first();
+
+  await expect(hammerProduct).toBeVisible();
+
+  await hammerProduct.click();
+
+  // Ajouter Hammer
+  await page.getByTestId('add-to-cart').click();
+
+  // Vérifier le panier
+  const cartBadge = page.getByTestId('cart-quantity');
+
+  await expect(cartBadge).toBeVisible();
+
+  await page.screenshot({
+    path: 'cart-end-result.png',
+    fullPage: true
+  });
 });
