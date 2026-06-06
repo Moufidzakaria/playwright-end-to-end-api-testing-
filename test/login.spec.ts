@@ -14,13 +14,11 @@ test('E2E Scenario: Login, Search and Add Products to Cart', async ({ page }) =>
   await page.getByTestId('email').fill('customer@practicesoftwaretesting.com');
   await page.getByTestId('password').fill('welcome01');
 
-  // SOLUTION : Remplacement du Promise.all par un enchaînement linéaire propre
+  // Clic et attente de la navigation
   await page.getByTestId('login-submit').click();
-  
-  // On attend explicitement que l'URL change vers le compte avec un timeout étendu pour la CI
   await page.waitForURL('**/account', { timeout: 15000 });
 
-  // Vérifier que la connexion est réussie
+  // Vérifier la connexion
   await expect(page).toHaveURL(/.*account/);
 
   await page.screenshot({
@@ -29,11 +27,19 @@ test('E2E Scenario: Login, Search and Add Products to Cart', async ({ page }) =>
   });
 
   // Retour accueil
-  await page.goto('https://practicesoftwaretesting.com/');
+  await page.goto('https://practicesoftwaretesting.com/', {
+    waitUntil: 'domcontentloaded'
+  });
 
-  // Premier produit
+  // --- CORRECTION DU TIMEOUT ICI ---
+  // On attend explicitement que le réseau soit calme pour que les produits (.card) soient chargés
+  await page.waitForLoadState('networkidle');
+
+  // On cible le premier produit
   const firstProduct = page.locator('.card').first();
-  await expect(firstProduct).toBeVisible();
+  
+  // On lui donne un timeout plus long (10s) pour s'afficher en CI si le serveur est lent
+  await expect(firstProduct).toBeVisible({ timeout: 10000 });
   await firstProduct.click();
 
   // Ajouter au panier
@@ -44,14 +50,17 @@ test('E2E Scenario: Login, Search and Add Products to Cart', async ({ page }) =>
   await page.getByTestId('quantity-up').click();
   await page.getByTestId('add-to-cart').click();
 
-  // Retour accueil
-  await page.goto('https://practicesoftwaretesting.com/');
+  // Retour accueil pour la recherche
+  await page.goto('https://practicesoftwaretesting.com/', {
+    waitUntil: 'domcontentloaded'
+  });
+  await page.waitForLoadState('networkidle');
 
   // Recherche Hammer
   await page.getByTestId('search-query').fill('hammer');
   await page.getByTestId('search-submit').click();
 
-  // SOLUTION : Éviter networkidle et cibler directement le produit attendu
+  // Attendre que le produit recherché apparaisse spécifiquement
   const hammerProduct = page.locator('.card').filter({ hasText: /hammer/i }).first();
   await expect(hammerProduct).toBeVisible({ timeout: 10000 });
   await hammerProduct.click();
@@ -61,7 +70,7 @@ test('E2E Scenario: Login, Search and Add Products to Cart', async ({ page }) =>
 
   // Vérifier le panier
   const cartBadge = page.getByTestId('cart-quantity');
-  await expect(cartBadge).toBeVisible();
+  await expect(cartBadge).toBeVisible({ timeout: 10000 });
 
   await page.screenshot({
     path: 'cart-end-result.png',
