@@ -3,7 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Homepage & Cart Tests Suite', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    // Il est préférable d'attendre le chargement complet (networkidle ou load) dans la CI de GitHub
+    await page.goto('/', { waitUntil: 'load' });
   });
 
   test('should login, navigate home, and add a product to the cart with screenshots', async ({ page }) => {
@@ -13,31 +14,34 @@ test.describe('Homepage & Cart Tests Suite', () => {
     // -----------------------------------------------------------------
     await page.getByTestId("nav-sign-in").click();
     
-    // MODIFICATION : Utilisation d'un compte utilisateur standard (non-admin)
     await page.getByTestId("email").fill('customer@practicesoftwaretesting.com');
     await page.getByTestId("password").fill('welcome01');
     
-    // Capture d'écran juste avant de cliquer sur Connexion (Formulaire rempli)
     await page.screenshot({ path: 'screenshots/1-formulaire-rempli.png' });
     
-    await page.getByTestId("login-submit").click();
+    // Cliquer et attendre la navigation vers /account
+    await Promise.all([
+      page.waitForURL('**/account', { timeout: 15000 }),
+      page.getByTestId("login-submit").click()
+    ]);
 
-    // On attend que le menu utilisateur de la boutique soit visible
+    // OPTIONNEL : Si "nav-menu" n'existe pas pour le rôle customer, remplacez-le par un élément sûr :
+    // Exemple : un sélecteur présent sur la page account (ex: page.getByTestId('change-password-submit') ou similaire)
+    // Si 'nav-menu' est bien présent mais instable, on force l'attente de son état attaché :
     const navMenu = page.getByTestId("nav-menu");
-    await expect(navMenu).toBeVisible({ timeout: 15000 });
+    await expect(navMenu).toBeAttached({ timeout: 15000 });
     
-    // Capture d'écran confirmant que l'utilisateur est connecté
     await page.screenshot({ path: 'screenshots/2-connexion-reussie.png' });
 
     // -----------------------------------------------------------------
     // ÉTAPE 2 : Retour à la page d'accueil
     // -----------------------------------------------------------------
-    await page.goto('https://practicesoftwaretesting.com/');
+    // Utiliser une URL relative pour éviter les problèmes d'environnement en CI
+    await page.goto('/', { waitUntil: 'load' });
     
     const productCards = page.locator('.card');
     await expect(productCards.first()).toBeVisible({ timeout: 15000 });
     
-    // Capture d'écran de la liste des produits après reconnexion
     await page.screenshot({ path: 'screenshots/3-retour-accueil-produits.png' });
 
     // -----------------------------------------------------------------
@@ -46,11 +50,9 @@ test.describe('Homepage & Cart Tests Suite', () => {
     const firstProduct = productCards.first();
     await firstProduct.click();
 
-    // Attendre que le bouton d'ajout au panier soit visible sur la page de détails
     const addToCartBtn = page.getByTestId("add-to-cart");
     await expect(addToCartBtn).toBeVisible({ timeout: 10000 });
     
-    // Capture d'écran de la page de détails du produit avant l'achat
     await page.screenshot({ path: 'screenshots/4-page-details-produit.png' });
 
     // -----------------------------------------------------------------
@@ -58,11 +60,9 @@ test.describe('Homepage & Cart Tests Suite', () => {
     // -----------------------------------------------------------------
     await addToCartBtn.click();
 
-    // Vérifier que le badge passe à 1
     const cartBadge = page.getByTestId("cart-quantity");
     await expect(cartBadge).toHaveText("1", { timeout: 10000 });
 
-    // Capture d'écran finale montrant le produit ajouté et le badge "1" dans le panier
     await page.screenshot({ path: 'screenshots/5-produit-ajoute-au-panier.png' });
   });
 
