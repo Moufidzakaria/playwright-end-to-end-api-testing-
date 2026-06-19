@@ -12,8 +12,8 @@ test.describe('Homepage & Cart Tests Suite', () => {
     await page.getByTestId("login-submit").click();
     await page.waitForURL('**/account', { timeout: 20000 });
 
-    // Sélecteur robuste par Test ID
-    await page.getByTestId('nav-home').click();
+    // Remplacement de la navigation par un goto direct à la racine (gère le responsive)
+    await page.goto('/');
     
     const firstProduct = page.getByTestId('product-name').first();
     await expect(firstProduct).toBeVisible({ timeout: 20000 });

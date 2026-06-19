@@ -11,7 +11,8 @@ test('E2E Scenario: Login, Search and Add Products to Cart', async ({ page }) =>
   await page.getByTestId('login-submit').click();
   await page.waitForURL('**/account', { timeout: 20000 });
 
-  await page.getByTestId('nav-home').click();
+  // Remplacement par une navigation directe à l'accueil
+  await page.goto('/');
 
   const firstProduct = page.getByTestId('product-name').first();
   await expect(firstProduct).toBeVisible({ timeout: 20000 });
@@ -30,7 +31,8 @@ test('E2E Scenario: Login, Search and Add Products to Cart', async ({ page }) =>
   await increaseQtyBtn.click();
   await addToCartBtn.click();
 
-  await page.getByTestId('nav-home').click();
+  // Retour à l'accueil pour la recherche
+  await page.goto('/');
 
   await page.getByTestId('search-query').fill('hammer');
   await page.getByTestId('search-submit').click();
