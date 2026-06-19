@@ -7,24 +7,24 @@ pool:
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '18.x'
+    versionSpec: '20.x'
   displayName: 'Install Node.js'
 
-- script: |
-    npm ci
-  displayName: 'Install Dependencies'
+- script: npm ci || npm install
+  displayName: 'Install dependencies'
 
-- script: |
-    npx playwright install --with-deps
+- script: npx playwright install --with-deps
   displayName: 'Install Playwright Browsers'
 
-- script: |
-    npx playwright test
-  displayName: 'Run Playwright Tests'
+- script: npx playwright test
+  displayName: 'Run Playwright tests'
+  env:
+    CI: 'true'
 
-- task: PublishTestResults@2
-  displayName: 'Publish Playwright Test Results'
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Playwright Report'
+  condition: succeededOrFailed()
   inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: '**/results.xml' # تأكدي بلي Playwright ديالك كيخرج JUnit report ف هاد المسار يلا بغيتي تشوفيهم ف Azure
-  condition: Always()
+    targetPath: '$(System.DefaultWorkingDirectory)/playwright-report'
+    artifact: 'playwright-report'
+    publishLocation: 'pipeline'
