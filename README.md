@@ -1,9 +1,7 @@
 # Playwright QA Automation Testing Project
 
 ## Overview
-
 This project demonstrates different testing approaches using **Playwright**:
-
 * UI Login Testing
 * Data-Driven Testing (JSON)
 * API Testing (CRUD Operations)
@@ -11,118 +9,115 @@ This project demonstrates different testing approaches using **Playwright**:
 * Cross-Browser Testing (Chromium & Firefox)
 * Screenshots, Videos, and Trace Collection
 
-The project uses the public testing platform:
-
-https://practicesoftwaretesting.com
+The project uses the public testing platform: [Practice Software Testing](https://practicesoftwaretesting.com)
 
 ---
 
-# Tech Stack
-
-* Playwright
-* TypeScript / JavaScript
-* JSON Test Data
-* REST API Testing
-* HTML Reporting
+## Tech Stack
+* **Framework:** Playwright
+* **Language:** TypeScript / JavaScript
+* **Data Format:** JSON Test Data
+* **API:** REST API Testing
+* **CI/CD:** GitHub Actions & Azure DevOps Pipelines
+* **Reporting:** HTML Reporting
 
 ---
 
-# Project Structure
-
-```bash
+## Project Structure
+```text
 project/
 │
+├── .github/workflows/
+│   └── playwright.yml         # GitHub Actions Configuration
+│
 ├── test/
-│   ├── login.spec.ts
-│   ├── api.spec.ts
-│   ├── e2e.spec.ts
+│   ├── api.spec.ts            # API Tests (CRUD)
+│   ├── auth.setup.ts          # Authentication Setup
+│   ├── home.spec.ts           # Homepage & Cart Tests
+│   └── login.spec.ts          # E2E & Login Tests
 │
-├── users.json
-│
-├── screenshots/
-│
-├── playwright.config.ts
-│
+├── azure-pipelines.yml        # Azure DevOps Pipeline Configuration
+├── users.json                 # Data-Driven Test Inputs
+├── playwright.config.ts       # Playwright Configuration
 ├── package.json
-│
 └── README.md
-```
-
----
-
-# Installation
-
+Installation
 Clone the repository:
 
-```bash
-git clone https://github.com/your-username/playwright-qa-project.git
-```
+Bash
 
+
+git clone [https://github.com/Moufidzakaria/playwright-end-to-end-api-testing-.git](https://github.com/Moufidzakaria/playwright-end-to-end-api-testing-.git)
 Navigate to project folder:
 
-```bash
-cd playwright-qa-project
-```
+Bash
 
+
+cd playwright-end-to-end-api-testing-
 Install dependencies:
 
-```bash
-npm install
-```
+Bash
 
+
+npm install
 Install Playwright browsers:
 
-```bash
+Bash
+
+
 npx playwright install
-```
-
----
-
-# Running Tests
-
+Running Tests Local
 Run all tests:
 
-```bash
-npx playwright test
-```
+Bash
 
+
+npx playwright test
 Run a specific test:
 
-```bash
-npx playwright test test/login.spec.ts
-```
+Bash
 
+
+npx playwright test test/login.spec.ts
 Run tests in headed mode:
 
-```bash
-npx playwright test --headed
-```
+Bash
 
+
+npx playwright test --headed
 Run tests using Chromium only:
 
-```bash
+Bash
+
+
 npx playwright test --project=chromium
-```
+CI/CD Pipeline Integration
+This project is fully automated and optimized for Continuous Integration (CI) platforms to prevent timeouts on shared environments by targeting stable virtualized runners.
 
-Run tests using Firefox only:
+1. GitHub Actions
+The project includes a multi-browser workflow located in .github/workflows/playwright.yml that triggers automatically on every push or pull_request to the main branch.
 
-```bash
-npx playwright test --project=firefox
-```
+2. Azure DevOps Pipelines
+A dedicated azure-pipelines.yml file is configured for enterprise-grade automation. It runs seamlessly on an Azure-hosted Ubuntu agent.
 
----
+Pipeline Key Features:
 
-# Data Driven Login Testing
+Node.js environment setup (v20).
 
-User credentials are stored inside:
+Isolated dependency installation via npm ci.
 
-```bash
-users.json
-```
+Chromium Pre-fetching: Optimized to download only the Chromium binary to save build time and guarantee VM stability.
 
-Example:
+Resilient Redirects: Bypasses responsive layout breakpoints using direct root navigation (page.goto('/')).
 
-```json
+Artifact Publishing: Automatically attaches the playwright-report to the Azure run dashboard whether the tests pass or fail (condition: always()).
+
+Data Driven Login Testing
+User credentials are stored inside users.json. The test dynamically executes a login scenario for every user profile contained in the file.
+
+JSON
+
+
 [
   {
     "name": "Admin User",
@@ -130,140 +125,41 @@ Example:
     "password": "welcome01"
   }
 ]
-```
+API Testing
+Covered API operations and validations include status codes, response bodies, and schema data verifications:
 
-The test dynamically executes a login scenario for every user contained in the JSON file.
+GET - Retrieve all products (/products)
 
----
+POST - Retrieve Admin Access Token (/users/login)
 
-# API Testing
+PUT - Update existing product (/products/{id})
 
-Covered API operations:
+End-to-End Testing Scenario
+The E2E workflow simulates a complete real-world user journey:
 
-### GET
+Login with safe state injection.
 
-Retrieve all products
+Direct stable home routing (handling responsive UI).
 
-```http
-GET /products
-```
+Product details selection & validation.
 
-### Authentication
+Cart incrementation and item additions.
 
-Retrieve Admin Access Token
+Dynamic keyword search (e.g., "hammer").
 
-```http
-POST /users/login
-```
+Persistent badge count verification.
 
-### PUT
+Reporting & Artifacts
+After execution, a rich HTML report is generated. On the CI platforms, these files are published as build artifacts.
 
-Update existing product
+View report locally:
 
-```http
-PUT /products/{id}
-```
+Bash
 
-Validations include:
 
-* Status Codes
-* Response Body
-* Product Data Verification
-
----
-
-# End-to-End Testing Scenario
-
-The E2E workflow performs:
-
-1. Login
-2. Navigate Home
-3. Open Product Details
-4. Add Product To Cart
-5. Increase Quantity
-6. Search Product
-7. Add Another Product
-8. Verify Cart Quantity
-
-Artifacts generated:
-
-* Screenshots
-* Videos
-* Traces
-
----
-
-# Playwright Configuration
-
-Configured Features:
-
-* Headless Execution
-* HTML Reports
-* Automatic Screenshots on Failure
-* Video Recording
-* Trace Collection
-* Action Timeout
-* Navigation Timeout
-* HTTPS Error Handling
-
-Supported Browsers:
-
-* Chromium
-* Firefox
-
----
-
-# Generate HTML Report
-
-After execution:
-
-```bash
 npx playwright show-report
-```
+The generated reports natively bundle Screenshots on failure, Video captures, and full Trace ZIP logs for quick debugging.
 
-The report contains:
-
-* Passed Tests
-* Failed Tests
-* Execution Time
-* Screenshots
-* Videos
-* Traces
-
-
-
-The configuration includes:
-
-```ts
-retries: process.env.CI ? 2 : 0
-workers: process.env.CI ? 1 : undefined
-```
-
-# QA Skills Demonstrated
-
-* Test Automation
-* API Testing
-* Data Driven Testing
-* E2E Testing
-* Cross Browser Testing
-* UI Automation
-* Assertions & Validation
-* Reporting
-* CI/CD Integration
-
----
-
-# Author
-
-Zakaria Moufid
-
-QA Automation Engineer
-
-Technologies:
-
-* Playwright
-* TypeScript
-* JavaScript
-* REST API Testing
-* Git & GitHub
+Author
+Zakaria Moufid QA Automation Engineer * Specialty: Playwright | TypeScript | CI/CD Integration (GitHub Actions & Azure DevOps)
 
